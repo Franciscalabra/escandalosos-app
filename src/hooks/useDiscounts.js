@@ -24,7 +24,8 @@ export const useDiscounts = () => {
             const hasProductCondition = rule.conditions.products?.length > 0;
 
             if (!hasCategoryCondition && !hasProductCondition) {
-              return true;
+              // Si la regla no especifica categorías o productos, no debe aplicar a nada.
+              return false;
             }
 
             let isEligible = false;

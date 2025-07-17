@@ -135,6 +135,7 @@ export const CartSidebar = ({ onCheckout }) => {
               <CartSummary
                 subtotal={subtotal}
                 discounts={discounts}
+                subtotalWithDiscounts={subtotalWithDiscounts}
                 shippingCost={shippingCost}
                 total={total}
                 deliveryMethod={deliveryMethod}
