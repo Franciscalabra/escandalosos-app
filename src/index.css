@@ -1,0 +1,388 @@
+/* Importar Tailwind CSS */
+@import 'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css';
+
+/* Variables CSS personalizadas */
+:root {
+  --primary-color: #f70295;
+  --secondary-color: #fae202;
+  --text-color: #000000;
+  --background-color: #ffffff;
+}
+
+/* Reset y estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Eliminar outlines y bordes de focus */
+*:focus {
+  outline: none !important;
+}
+
+button:focus,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+input:focus,
+input:active,
+textarea:focus,
+textarea:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e00285;
+}
+
+/* Animaciones personalizadas */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Clases de utilidad personalizadas */
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-pulse-custom {
+  animation: pulse 2s infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Estilos para el scrollbar horizontal */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Transiciones suaves */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Sombras personalizadas */
+.shadow-custom {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-custom-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para el loading spinner */
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+/* Estilos para los botones */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #e00285;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(247, 2, 149, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Estilos para las cards de productos */
+.product-card {
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos para el carrito lateral */
+.cart-sidebar-enter {
+  transform: translateX(100%);
+}
+
+.cart-sidebar-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-out;
+}
+
+.cart-sidebar-exit {
+  transform: translateX(0);
+}
+
+.cart-sidebar-exit-active {
+  transform: translateX(100%);
+  transition: transform 300ms ease-in;
+}
+
+/* Estilos para inputs */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+textarea,
+select {
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(247, 2, 149, 0.1);
+}
+
+/* Estilos para el panel de admin */
+.admin-panel {
+  backdrop-filter: blur(5px);
+}
+
+/* Estilos responsivos adicionales */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .product-card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Ajustes para el modal de combo en móvil */
+  .combo-modal-content {
+    max-height: 85vh;
+  }
+  
+  /* Ajustes para el carrito en móvil */
+  .cart-sidebar {
+    width: 100%;
+  }
+  
+  /* Ajustes para el panel de admin en móvil */
+  .admin-panel-sidebar {
+    display: none;
+  }
+  
+  .admin-panel-content {
+    padding: 1rem;
+  }
+}
+
+/* Estilos de impresión */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+  }
+}
+
+/* Utilidades adicionales */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #e00285 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #e00285 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fix para elementos que necesitan z-index alto */
+.z-highest {
+  z-index: 9999;
+}
+
+/* Animación para el banner promocional */
+.promo-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Estilos para modo oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+  /* Puedes agregar estilos para modo oscuro aquí si lo necesitas */
+}
+
+/* WordPress specific fixes */
+.wp-admin .product-card,
+.wp-admin .cart-sidebar {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Fix para conflictos con temas de WordPress */
+#wpadminbar {
+  position: fixed !important;
+}
+
+.admin-bar {
+  margin-top: 32px;
+}
+
+@media screen and (max-width: 782px) {
+  .admin-bar {
+    margin-top: 46px;
+  }
+}
+
+/* Asegurar que los modales aparezcan sobre todo */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+}
