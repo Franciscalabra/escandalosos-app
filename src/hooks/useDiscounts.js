@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useConfig } from '../context/ConfigContext';
 
 export const useDiscounts = () => {
@@ -15,34 +14,36 @@ export const useDiscounts = () => {
     const appliedDiscounts = [];
     let totalDiscount = 0;
 
-    // Revisar cada regla de descuento
     config.discounts.rules.forEach(rule => {
       if (!rule.enabled) return;
 
       switch (rule.type) {
         case 'buyXgetY': {
-          // Lógica para promociones tipo 2x1, 3x2, etc.
           const eligibleItems = cart.filter(item => {
-            // Verificar si el producto está en las categorías de la regla
-            if (rule.conditions.categories?.length > 0) {
-              return item.categories?.some(cat => 
+            const hasCategoryCondition = rule.conditions.categories?.length > 0;
+            const hasProductCondition = rule.conditions.products?.length > 0;
+
+            if (!hasCategoryCondition && !hasProductCondition) {
+              return true;
+            }
+
+            let isEligible = false;
+            if (hasCategoryCondition) {
+              isEligible = item.categories?.some(cat => 
                 rule.conditions.categories.includes(cat.id.toString())
               );
             }
-            // Verificar si es un producto específico
-            if (rule.conditions.products?.length > 0) {
-              return rule.conditions.products.includes(item.id.toString());
+            if (!isEligible && hasProductCondition) {
+              isEligible = rule.conditions.products.includes(item.id.toString());
             }
-            return false;
+            return isEligible;
           });
 
-          if (eligibleItems.length >= rule.conditions.minQuantity) {
-            // Calcular cuántos productos gratis corresponden
+          if (eligibleItems.length > 0 && eligibleItems.reduce((sum, item) => sum + item.quantity, 0) >= rule.conditions.minQuantity) {
             const totalQuantity = eligibleItems.reduce((sum, item) => sum + item.quantity, 0);
             const setsOfPromo = Math.floor(totalQuantity / rule.conditions.minQuantity);
             const freeItems = setsOfPromo * rule.conditions.getQuantity;
             
-            // Ordenar por precio para dar gratis los más baratos
             const sortedItems = [...eligibleItems].sort((a, b) => a.price - b.price);
             
             let freeItemsCount = 0;
@@ -70,25 +71,21 @@ export const useDiscounts = () => {
         }
 
         case 'percentage': {
-          // Descuento porcentual sobre categorías o productos
           let eligibleAmount = 0;
           
           cart.forEach(item => {
             let isEligible = false;
             
-            // Verificar categorías
             if (rule.conditions.categories?.length > 0) {
               isEligible = item.categories?.some(cat => 
                 rule.conditions.categories.includes(cat.id.toString())
               );
             }
             
-            // Verificar productos específicos
             if (!isEligible && rule.conditions.products?.length > 0) {
               isEligible = rule.conditions.products.includes(item.id.toString());
             }
             
-            // Si no hay condiciones específicas, aplicar a todo
             if (!rule.conditions.categories?.length && !rule.conditions.products?.length) {
               isEligible = true;
             }
@@ -98,7 +95,6 @@ export const useDiscounts = () => {
             }
           });
           
-          // Verificar monto mínimo
           if (rule.conditions.minAmount && subtotal < rule.conditions.minAmount) {
             return;
           }
@@ -118,8 +114,6 @@ export const useDiscounts = () => {
         }
 
         case 'fixed': {
-          // Descuento fijo
-          // Verificar monto mínimo
           if (rule.conditions.minAmount && subtotal < rule.conditions.minAmount) {
             return;
           }
@@ -135,9 +129,7 @@ export const useDiscounts = () => {
         }
 
         case 'progressive': {
-          // Descuento progresivo basado en monto de compra
           if (rule.conditions.tiers) {
-            // Encontrar el tier aplicable
             let applicableTier = null;
             
             rule.conditions.tiers.forEach(tier => {
@@ -162,13 +154,16 @@ export const useDiscounts = () => {
           }
           break;
         }
+
+        default:
+            break;
       }
     });
 
     return {
       total: totalDiscount,
       applied: appliedDiscounts,
-      pending: [] // Por ahora vacío, la lógica está en PendingDiscounts
+      pending: []
     };
   };
 
