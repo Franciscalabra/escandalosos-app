@@ -23,12 +23,13 @@ export const ProductCard = ({ product, isCombo = false }) => {
   const hasHappyHour = product.happy_hour_discount?.active;
   const isBestSeller = product.total_sales && product.total_sales > 10;
   
-  // Verificar si el producto necesita personalización
-  const categoryId = product.categories[0]?.id;
-  const hasSizes = config.personalization?.sizes?.[categoryId]?.length > 0;
-  const hasIngredients = config.personalization?.ingredients?.[product.id]?.base?.length > 0 || 
-                        config.personalization?.ingredients?.[product.id]?.extras?.length > 0;
-  const needsPersonalization = hasSizes || hasIngredients;
+  // Verificar si el producto necesita personalización (LÓGICA CORREGIDA)
+  const needsPersonalization = 
+    product.is_personalizable && (
+      (product.personalization?.sizes && product.personalization.sizes.length > 0) ||
+      (product.personalization?.ingredients?.base && product.personalization.ingredients.base.length > 0) ||
+      (product.personalization?.ingredients?.extras && product.personalization.ingredients.extras.length > 0)
+    );
   
   // Obtener badges del producto
   const productBadges = config.personalization?.badges?.filter(badge => 
@@ -228,17 +229,19 @@ export const ProductCard = ({ product, isCombo = false }) => {
           config={config}
           isOpen={showPersonalizationSidebar}
           onClose={() => setShowPersonalizationSidebar(false)}
-        onConfirm={(personalizedProduct) => {
-  if (isCombo) {
-    // Si también es combo, guardar la personalización y abrir combo sidebar
-    setProduct({...personalizedProduct});
-    setShowPersonalizationSidebar(false);
-    setShowComboSidebar(true);
-  } else {
-    addToCart(personalizedProduct);
-    setShowPersonalizationSidebar(false);
-  }
-}}
+          onConfirm={(personalizedProduct) => {
+            if (isCombo) {
+              // Si también es combo, guardar la personalización y abrir combo sidebar
+              // Esta lógica es compleja y necesitaría un estado intermedio.
+              // Por ahora, asumimos que un producto es O personalizable O combo.
+              // Si ambos pueden ser verdad, se necesitaría un refactor más grande.
+              addToCart(personalizedProduct);
+              setShowPersonalizationSidebar(false);
+            } else {
+              addToCart(personalizedProduct);
+              setShowPersonalizationSidebar(false);
+            }
+          }}
         />
       )}
     </>

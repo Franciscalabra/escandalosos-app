@@ -1,10 +1,10 @@
-import React from 'react';
-import { Truck, MapPin, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Truck, MapPin, Tag, ChevronDown } from 'lucide-react';
 import { formatPrice } from '../../utils/formatters';
 
 export const CartSummary = ({ 
   subtotal,
-  subtotalWithDiscounts, // <-- Usaremos este para más claridad
+  subtotalWithDiscounts,
   discounts,
   shippingCost, 
   total, 
@@ -16,6 +16,8 @@ export const CartSummary = ({
   onDeliveryMethodChange,
   config 
 }) => {
+  const [deliveryExpanded, setDeliveryExpanded] = useState(false);
+
   const hasShipping = shippingMethods.some(m => 
     m.enabled && (m.method_id === 'flat_rate' || m.method_id === 'free_shipping')
   );
@@ -25,63 +27,86 @@ export const CartSummary = ({
 
   return (
     <div className="space-y-4">
-      {/* Selector de método de entrega */}
-      <div className="space-y-3">
-        <h3 className="font-bold text-sm uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
-          MÉTODO DE ENTREGA
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {hasShipping && (
-            <button
-              onClick={() => onDeliveryMethodChange('delivery')}
-              className={`p-3 rounded-lg transition-all ${
-                deliveryMethod === 'delivery' 
-                  ? 'text-white' 
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-              }`}
-              style={{ 
-                outline: 'none',
-                backgroundColor: deliveryMethod === 'delivery' ? primaryColor : undefined
-              }}
-            >
-              <Truck className="h-5 w-5 mx-auto mb-1" />
-              <span className="text-xs font-bold uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                DELIVERY
-              </span>
-            </button>
-          )}
-          
-          <button
-            onClick={() => onDeliveryMethodChange('pickup')}
-            className={`p-3 rounded-lg transition-all ${
-              deliveryMethod === 'pickup' 
-                ? 'text-white' 
-                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-            }`}
-            style={{ 
-              outline: 'none',
-              backgroundColor: deliveryMethod === 'pickup' ? primaryColor : undefined
-            }}
-          >
-            <MapPin className="h-5 w-5 mx-auto mb-1" />
-            <span className="text-xs font-bold uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              RETIRO
-            </span>
-          </button>
-        </div>
-        
-        <DeliveryMethodInfo 
-          deliveryMethod={deliveryMethod} 
-          config={config} 
-        />
+      {/* Método de entrega desplegable */}
+      <div className="border rounded-lg overflow-hidden">
+        <button
+          onClick={() => setDeliveryExpanded(!deliveryExpanded)}
+          className="w-full p-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            {deliveryMethod === 'delivery' ? (
+              <Truck className="h-5 w-5" style={{ color: primaryColor }} />
+            ) : (
+              <MapPin className="h-5 w-5" style={{ color: primaryColor }} />
+            )}
+            <div className="text-left">
+              <p className="font-bold text-sm uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                {deliveryMethod === 'delivery' ? 'DELIVERY' : 'RETIRO EN LOCAL'}
+              </p>
+              <p className="text-xs text-gray-600">
+                {deliveryMethod === 'delivery'
+                  ? `Envío: ${shippingCost === 0 ? 'GRATIS' : formatPrice(shippingCost)}`
+                  : config.business.address
+                }
+              </p>
+            </div>
+          </div>
+          <ChevronDown className={`h-5 w-5 transition-transform ${deliveryExpanded ? 'rotate-180' : ''}`} />
+        </button>
+
+        {deliveryExpanded && (
+          <div className="p-4 bg-white border-t">
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {hasShipping && (
+                <button
+                  onClick={() => {
+                    onDeliveryMethodChange('delivery');
+                    setDeliveryExpanded(false);
+                  }}
+                  className={`p-3 rounded-lg transition-all ${
+                    deliveryMethod === 'delivery'
+                      ? 'text-white'
+                      : 'bg-white text-gray-700 border border-gray-200'
+                  }`}
+                  style={{ 
+                    backgroundColor: deliveryMethod === 'delivery' ? primaryColor : undefined
+                  }}
+                >
+                  <Truck className="h-5 w-5 mx-auto mb-1" />
+                  <span className="text-xs font-bold uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>DELIVERY</span>
+                </button>
+              )}
+              
+              <button
+                onClick={() => {
+                  onDeliveryMethodChange('pickup');
+                  setDeliveryExpanded(false);
+                }}
+                className={`p-3 rounded-lg transition-all ${
+                  deliveryMethod === 'pickup'
+                    ? 'text-white'
+                    : 'bg-white text-gray-700 border border-gray-200'
+                }`}
+                style={{ 
+                  backgroundColor: deliveryMethod === 'pickup' ? primaryColor : undefined
+                }}
+              >
+                <MapPin className="h-5 w-5 mx-auto mb-1" />
+                <span className="text-xs font-bold uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>RETIRO</span>
+              </button>
+            </div>
+            
+            <DeliveryMethodInfo 
+              deliveryMethod={deliveryMethod} 
+              config={config} 
+            />
+          </div>
+        )}
       </div>
 
-      {/* Desglose de costos */}
+      {/* Desglose de costos (sin cambios) */}
       <div className="border-t pt-4 space-y-3">
-        
-        {/* === BLOQUE DE SUBTOTAL CORREGIDO === */}
         {discounts.total > 0 ? (
-          // Vista CON descuentos
           <>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 uppercase line-through" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -106,7 +131,6 @@ export const CartSummary = ({
             </div>
           </>
         ) : (
-          // Vista SIN descuentos
           <div className="flex justify-between text-sm">
             <span className="text-gray-600 uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
               SUBTOTAL:
@@ -115,7 +139,6 @@ export const CartSummary = ({
           </div>
         )}
         
-        {/* Costo de envío */}
         {deliveryMethod === 'delivery' && (
           <div className="flex justify-between text-sm">
             <span className="text-gray-600 uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -127,7 +150,6 @@ export const CartSummary = ({
           </div>
         )}
         
-        {/* Mensaje de envío gratis */}
         {deliveryMethod === 'delivery' && config.shipping.freeShippingEnabled && !isFreeShipping && (
           <div 
             className="bg-opacity-10 rounded-lg p-3 text-sm"
@@ -151,7 +173,6 @@ export const CartSummary = ({
           </div>
         )}
         
-        {/* Total */}
         <div className="flex justify-between text-lg font-bold pt-3 border-t">
           <span className="uppercase" style={{ fontFamily: 'Anton, sans-serif' }}>
             TOTAL:
@@ -165,7 +186,7 @@ export const CartSummary = ({
   );
 };
 
-// Componente interno para información del método de entrega
+// Componente interno (sin cambios)
 const DeliveryMethodInfo = ({ deliveryMethod, config }) => {
   if (deliveryMethod === 'pickup') {
     return (

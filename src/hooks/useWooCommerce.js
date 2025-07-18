@@ -78,30 +78,24 @@ export const useWooCommerce = () => {
         setCategories(enhancedCategories);
         console.log('✅ Categorías procesadas con Happy Hour');
 
-        // 2. Procesar productos con configuración de Escandalosos
+        // 2. Procesar productos con configuración de Escandalosos (LÓGICA CORREGIDA)
         const enhancedProducts = productsData.map(product => {
           let processedProduct = { ...product };
           const productConfig = escandalososConfig?.products?.[product.id];
         
-          // Añadir información de combo/personalización del plugin
-          if (productConfig) {
-            // Verificar si es combo
-            if (productConfig.is_combo) {
-              processedProduct.is_combo = true;
-              processedProduct.combo_config = productConfig.combo_config || {};
-              console.log(`Producto ${product.id} es COMBO:`, productConfig.combo_config);
-            }
+          // Añadir la configuración de personalización DIRECTAMENTE al producto
+          if (productConfig?.is_personalizable) {
+            processedProduct.is_personalizable = true; // Mantener por si se usa en otro lado
+            processedProduct.personalization = {
+              sizes: productConfig.sizes || [],
+              ingredients: productConfig.ingredients || { base: [], extras: [] }
+            };
+          }
         
-            // Verificar si es personalizable - AHORA POR PRODUCTO
-            if (productConfig.is_personalizable) {
-              processedProduct.is_personalizable = true;
-              processedProduct.sizes = productConfig.sizes || [];
-              processedProduct.ingredients = productConfig.ingredients || { base: [], extras: [] };
-              console.log(`Producto ${product.id} es PERSONALIZABLE:`, {
-                sizes: productConfig.sizes,
-                ingredients: productConfig.ingredients
-              });
-            }
+          // Añadir la configuración de combo DIRECTAMENTE al producto
+          if (productConfig?.is_combo) {
+            processedProduct.is_combo = true;
+            processedProduct.combo_config = productConfig.combo_config || {};
           }
         
           // Aplicar descuento de Happy Hour si corresponde
@@ -135,86 +129,39 @@ export const useWooCommerce = () => {
         
           return processedProduct;
         });
-
+        
         setProducts(enhancedProducts);
         console.log('✅ Productos procesados con personalización y Happy Hour');
-
-        // 3. Actualizar configuración global con datos del plugin
+        
+        // 3. Actualizar configuración global (se mantiene para otras funcionalidades)
         if (escandalososConfig) {
-          // Actualizar configuración de combos
           if (escandalososConfig.categories) {
-            const combosConfig = { enabled: true, categories: {} };
-            
-            // Buscar categorías que tienen productos combo
-            Object.entries(escandalososConfig.products).forEach(([productId, productConfig]) => {
-              if (productConfig.is_combo && productConfig.combo_config) {
-                // Encontrar la categoría del producto
-                const product = enhancedProducts.find(p => p.id === parseInt(productId));
-                if (product && product.categories.length > 0) {
-                  const categoryId = product.categories[0].id;
-                  
-                  if (!combosConfig.categories[categoryId]) {
-                    combosConfig.categories[categoryId] = {
-                      enabled: true,
-                      subcategories: {}
-                    };
+              const combosConfig = { enabled: true, categories: {} };
+              Object.entries(escandalososConfig.products).forEach(([productId, productConfig]) => {
+                if (productConfig.is_combo && productConfig.combo_config) {
+                  const product = enhancedProducts.find(p => p.id === parseInt(productId));
+                  if (product && product.categories.length > 0) {
+                    const categoryId = product.categories[0].id;
+                    if (!combosConfig.categories[categoryId]) {
+                      combosConfig.categories[categoryId] = { enabled: true, subcategories: {} };
+                    }
+                    Object.entries(productConfig.combo_config).forEach(([subcatId, subcatConfig]) => {
+                      combosConfig.categories[categoryId].subcategories[subcatId] = subcatConfig;
+                    });
                   }
-                  
-                  // Agregar subcategorías del combo
-                  Object.entries(productConfig.combo_config).forEach(([subcatId, subcatConfig]) => {
-                    combosConfig.categories[categoryId].subcategories[subcatId] = subcatConfig;
-                  });
                 }
-              }
-            });
-            
-            // Guardar en config local para uso temporal
-            config.combos = { ...config.combos, ...combosConfig };
-            console.log('✅ Configuración de combos actualizada:', combosConfig);
+              });
+              config.combos = { ...config.combos, ...combosConfig };
           }
-
-          // Actualizar configuración de personalización
-          const personalizationConfig = { 
-            sizes: {}, 
-            ingredients: {},
-            extraIngredientPrice: escandalososConfig.settings?.extra_ingredient_price || 1500
-          };
           
-          Object.entries(escandalososConfig.products).forEach(([productId, productConfig]) => {
-            if (productConfig.is_personalizable) {
-              // Obtener categoría del producto
-              const product = enhancedProducts.find(p => p.id === parseInt(productId));
-              if (product && product.categories.length > 0) {
-                const categoryId = product.categories[0].id;
-                
-                // Agregar tamaños por categoría
-                if (productConfig.sizes && productConfig.sizes.length > 0) {
-                  if (!personalizationConfig.sizes[categoryId]) {
-                    personalizationConfig.sizes[categoryId] = productConfig.sizes;
-                  }
-                }
-                
-                // Agregar ingredientes por producto
-                if (productConfig.ingredients) {
-                  personalizationConfig.ingredients[productId] = productConfig.ingredients;
-                }
-              }
-            }
-          });
-          
-          // Guardar en config local para uso temporal
-          config.personalization = { ...config.personalization, ...personalizationConfig };
-          console.log('✅ Configuración de personalización actualizada:', personalizationConfig);
-
-          // Actualizar configuración de descuentos
           if (discountRules && discountRules.length > 0) {
             config.discounts = {
               enabled: true,
               rules: discountRules
             };
-            console.log('✅ Reglas de descuento cargadas:', discountRules);
           }
         }
+
 
         // 4. Configurar envío y pagos
         setShippingZones(shippingInfo.zones);

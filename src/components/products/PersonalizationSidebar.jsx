@@ -7,18 +7,23 @@ export const PersonalizationSidebar = ({ product, config, isOpen, onClose, onCon
   const [removedIngredients, setRemovedIngredients] = useState([]);
   const [addedIngredients, setAddedIngredients] = useState([]);
   
-  // Obtener configuración de personalización
-  const productId = product.id;
-  const sizes = product.sizes || [];
-  const productIngredients = product.ingredients || { base: [], extras: [] };
+  // --- INICIO DE LA CORRECCIÓN ---
+  // Obtener configuración de personalización directamente desde el producto.
+  const sizes = product.personalization?.sizes || [];
+  const productIngredients = product.personalization?.ingredients || { base: [], extras: [] };
   const extraIngredientPrice = config.personalization?.extraIngredientPrice || 1500;
+  // --- FIN DE LA CORRECCIÓN ---
   
   useEffect(() => {
-    // Seleccionar el primer tamaño por defecto
+    // Seleccionar el primer tamaño por defecto si existe y no hay uno seleccionado
     if (sizes.length > 0 && !selectedSize) {
       setSelectedSize(sizes[0]);
     }
-  }, [sizes, selectedSize]);
+    // Si no hay tamaños, asegurarse de que no haya ninguno seleccionado
+    if (sizes.length === 0) {
+      setSelectedSize(null);
+    }
+  }, [product, sizes, selectedSize]); // Se agrega 'product' como dependencia por si cambia
 
   const handleIngredientToggle = (ingredient, type) => {
     if (type === 'remove') {
@@ -58,8 +63,12 @@ export const PersonalizationSidebar = ({ product, config, isOpen, onClose, onCon
       totalPrice: calculateTotal()
     };
     
+    // Se agrega un nombre personalizado para mostrar en el carrito
+    const customName = `${product.name} ${selectedSize ? `(${selectedSize.name})` : ''}`;
+
     onConfirm({
       ...product,
+      name: customName, // Usamos el nombre personalizado
       modifications,
       price: calculateTotal()
     });
@@ -69,6 +78,16 @@ export const PersonalizationSidebar = ({ product, config, isOpen, onClose, onCon
     setAddedIngredients([]);
     onClose();
   };
+
+  // Resetea el estado del sidebar cuando se cierra
+  useEffect(() => {
+      if (!isOpen) {
+          setSelectedSize(sizes.length > 0 ? sizes[0] : null);
+          setRemovedIngredients([]);
+          setAddedIngredients([]);
+      }
+  }, [isOpen, sizes]);
+
 
   return (
     <div className={`fixed inset-0 z-50 ${isOpen ? 'visible' : 'invisible'}`}>
@@ -124,10 +143,10 @@ export const PersonalizationSidebar = ({ product, config, isOpen, onClose, onCon
                 <div className="space-y-2">
                   {sizes.map(size => (
                     <button
-                      key={size.id}
+                      key={size.name} // Usar un key más robusto si es posible
                       onClick={() => setSelectedSize(size)}
                       className={`w-full p-3 rounded-lg border-2 transition-all ${
-                        selectedSize?.id === size.id
+                        selectedSize?.name === size.name
                           ? 'border-pink-500 bg-pink-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}

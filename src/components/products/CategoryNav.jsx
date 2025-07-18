@@ -7,34 +7,17 @@ export const CategoryNav = ({ categories, selectedCategory, onCategoryChange, pr
   const { categoryHasActiveHappyHour } = useWooCommerce();
   const { config } = useConfig();
   
-  // Orden personalizado de categorías
-  const categoryOrder = ['especiales', 'clasicas', 'clásicas', 'premium', 'agregados'];
-  
-  // Ordenar categorías según el orden definido
-  const sortedCategories = [...categories].sort((a, b) => {
-    const aIndex = categoryOrder.findIndex(name => 
-      a.name.toLowerCase().includes(name) || 
-      a.slug?.toLowerCase().includes(name)
-    );
-    const bIndex = categoryOrder.findIndex(name => 
-      b.name.toLowerCase().includes(name) || 
-      b.slug?.toLowerCase().includes(name)
-    );
-    
-    // Si ambas están en el orden, ordenar según su posición
-    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-    // Si solo una está en el orden, ponerla primero
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-    // Si ninguna está en el orden, mantener orden original
-    return 0;
-  });
+  // --- INICIO DE LA CORRECCIÓN ---
+  // Se ha eliminado la lógica de ordenamiento personalizado ('categoryOrder' y 'sortedCategories').
+  // Ahora el componente respetará el orden del array 'categories' que recibe como prop.
+  // --- FIN DE LA CORRECCIÓN ---
 
   return (
     <nav className="bg-gray-50 sticky top-[64px] z-30">
       <div className="container mx-auto px-4">
         <div className="flex items-center space-x-4 overflow-x-auto py-4 scrollbar-hide">
-          {sortedCategories.map(category => {
+          {/* Se itera directamente sobre 'categories' en lugar de 'sortedCategories' */}
+          {categories.map(category => {
             const hasHappyHour = categoryHasActiveHappyHour(category.id);
             const isComboCategory = config.combos?.enabled && config.combos?.categories?.[category.id]?.enabled;
             
