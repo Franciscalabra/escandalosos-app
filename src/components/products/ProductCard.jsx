@@ -6,11 +6,14 @@ import { useConfig } from '../../context/ConfigContext';
 import { ComboSidebar } from '../combos/ComboSidebar';
 import { PersonalizationSidebar } from './PersonalizationSidebar';
 
-export const ProductCard = ({ product, isCombo = false }) => {
+export const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const { config } = useConfig();
   const [showComboSidebar, setShowComboSidebar] = useState(false);
   const [showPersonalizationSidebar, setShowPersonalizationSidebar] = useState(false);
+  
+  // Verificar si es combo directamente desde el producto
+  const isCombo = product.is_combo && product.combo_config;
   
   const discount = product.regular_price && product.sale_price 
     ? Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)

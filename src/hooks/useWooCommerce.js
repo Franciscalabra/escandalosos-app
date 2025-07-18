@@ -133,26 +133,9 @@ export const useWooCommerce = () => {
         setProducts(enhancedProducts);
         console.log('✅ Productos procesados con personalización y Happy Hour');
         
-        // 3. Actualizar configuración global (se mantiene para otras funcionalidades)
+        // 3. Actualizar configuración global (solo para descuentos)
         if (escandalososConfig) {
-          if (escandalososConfig.categories) {
-              const combosConfig = { enabled: true, categories: {} };
-              Object.entries(escandalososConfig.products).forEach(([productId, productConfig]) => {
-                if (productConfig.is_combo && productConfig.combo_config) {
-                  const product = enhancedProducts.find(p => p.id === parseInt(productId));
-                  if (product && product.categories.length > 0) {
-                    const categoryId = product.categories[0].id;
-                    if (!combosConfig.categories[categoryId]) {
-                      combosConfig.categories[categoryId] = { enabled: true, subcategories: {} };
-                    }
-                    Object.entries(productConfig.combo_config).forEach(([subcatId, subcatConfig]) => {
-                      combosConfig.categories[categoryId].subcategories[subcatId] = subcatConfig;
-                    });
-                  }
-                }
-              });
-              config.combos = { ...config.combos, ...combosConfig };
-          }
+          // Ya no procesamos combos aquí - cada producto tiene su propia config
           
           if (discountRules && discountRules.length > 0) {
             config.discounts = {
@@ -161,7 +144,6 @@ export const useWooCommerce = () => {
             };
           }
         }
-
 
         // 4. Configurar envío y pagos
         setShippingZones(shippingInfo.zones);

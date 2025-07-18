@@ -52,7 +52,6 @@ export const HomeView = () => {
               {(() => {
                 // 2. Mover la lógica que depende de los datos DENTRO del bloque de "no carga".
                 const currentCategory = categories.find(cat => cat.id.toString() === selectedCategory);
-                const isComboCategory = config.combos?.enabled && config.combos?.categories?.[selectedCategory]?.enabled;
 
                 return (
                   <>
@@ -72,7 +71,6 @@ export const HomeView = () => {
                         products={filteredProducts}
                         loading={loading}
                         primaryColor={config.colors.primary}
-                        isComboCategory={isComboCategory}
                       />
                     )}
                   </>

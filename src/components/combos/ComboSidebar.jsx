@@ -8,8 +8,11 @@ export const ComboSidebar = ({ product, config, isOpen, onClose, onConfirm }) =>
   const [selections, setSelections] = useState({});
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Obtener configuración del combo
-  const comboConfig = config.combos?.categories?.[product.categories[0]?.id];
+  // Obtener configuración del combo directamente del producto
+  const comboConfig = product.combo_config ? { 
+    enabled: true, 
+    subcategories: product.combo_config 
+  } : null;
   
   // Preparar pasos basados en subcategorías
   const steps = Object.entries(comboConfig?.subcategories || {}).map(([id, config]) => ({
@@ -31,6 +34,11 @@ export const ComboSidebar = ({ product, config, isOpen, onClose, onConfirm }) =>
       setSelections(initialSelections);
     }
   }, [comboConfig]);
+
+  // Obtener productos de la subcategoría actual
+  const subcategoryProducts = products.filter(p => 
+    p.categories.some(cat => cat.id.toString() === currentStepData?.id.toString())
+  );
 
   const handleProductToggle = (subcategoryId, product) => {
     const currentSelections = selections[subcategoryId] || [];
@@ -62,6 +70,7 @@ export const ComboSidebar = ({ product, config, isOpen, onClose, onConfirm }) =>
 
   const isStepValid = (stepIndex) => {
     const step = steps[stepIndex];
+    if (!step) return false;
     const stepSelections = selections[step.id] || [];
     return stepSelections.length >= step.minSelection && 
            stepSelections.length <= step.maxSelection;
@@ -96,13 +105,10 @@ export const ComboSidebar = ({ product, config, isOpen, onClose, onConfirm }) =>
     }
   };
 
-  if (!comboConfig || !comboConfig.enabled) {
+  // Si no hay configuración, no mostrar nada
+  if (!comboConfig || !comboConfig.enabled || steps.length === 0) {
     return null;
   }
-
-  const subcategoryProducts = products.filter(p => 
-    p.categories.some(cat => cat.id.toString() === currentStepData?.id)
-  );
 
   return (
     <div className={`fixed inset-0 z-50 ${isOpen ? 'visible' : 'invisible'}`}>
@@ -155,81 +161,92 @@ export const ComboSidebar = ({ product, config, isOpen, onClose, onConfirm }) =>
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="mb-4">
-              <h3 className="font-bold text-lg uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                {currentStepData?.name}
-              </h3>
-              <p className="text-sm text-gray-600">
-                Selecciona {currentStepData?.minSelection === currentStepData?.maxSelection 
-                  ? currentStepData?.minSelection
-                  : `entre ${currentStepData?.minSelection} y ${currentStepData?.maxSelection}`
-                } {currentStepData?.maxSelection === 1 ? 'opción' : 'opciones'}
-              </p>
-              
-              {/* Progress indicator for current step */}
-              <div className="mt-2">
-                <div className="bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="h-2 rounded-full transition-all"
-                    style={{ 
-                      width: `${((selections[currentStepData?.id] || []).length / currentStepData?.maxSelection) * 100}%`,
-                      backgroundColor: isStepValid(currentStep) ? '#10b981' : config.colors.primary
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-gray-600 mt-1">
-                  {(selections[currentStepData?.id] || []).length} de {currentStepData?.maxSelection} seleccionado{(selections[currentStepData?.id] || []).length !== 1 ? 's' : ''}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {subcategoryProducts.map(subProduct => {
-                const isSelected = selections[currentStepData?.id]?.some(p => p.id === subProduct.id);
-                const canSelect = (selections[currentStepData?.id] || []).length < currentStepData?.maxSelection || isSelected;
-                
-                return (
-                  <div
-                    key={subProduct.id}
-                    onClick={() => canSelect && handleProductToggle(currentStepData?.id, subProduct)}
-                    className={`border rounded-lg p-3 transition-all ${
-                      isSelected 
-                        ? 'border-2 bg-opacity-10' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    } ${canSelect ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
-                    style={{
-                      borderColor: isSelected ? config.colors.primary : undefined,
-                      backgroundColor: isSelected ? `${config.colors.primary}10` : undefined
-                    }}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <img 
-                        src={subProduct.images?.[0]?.src || '/api/placeholder/60/60'} 
-                        alt={subProduct.name}
-                        className="w-16 h-16 object-cover rounded"
+            {currentStepData && (
+              <>
+                <div className="mb-4">
+                  <h3 className="font-bold text-lg uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    {currentStepData.name || 'Selecciona'}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Selecciona {currentStepData.minSelection === currentStepData.maxSelection 
+                      ? currentStepData.minSelection
+                      : `entre ${currentStepData.minSelection} y ${currentStepData.maxSelection}`
+                    } {currentStepData.maxSelection === 1 ? 'opción' : 'opciones'}
+                  </p>
+                  
+                  {/* Progress indicator for current step */}
+                  <div className="mt-2">
+                    <div className="bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full transition-all"
+                        style={{ 
+                          width: `${((selections[currentStepData.id] || []).length / currentStepData.maxSelection) * 100}%`,
+                          backgroundColor: isStepValid(currentStep) ? '#10b981' : config.colors.primary
+                        }}
                       />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm uppercase truncate" 
-                            style={{ fontFamily: 'Poppins, sans-serif' }}>
-                          {subProduct.name}
-                        </h4>
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                          {subProduct.description || 'Deliciosa opción para tu combo'}
-                        </p>
-                      </div>
-                      <div className={`rounded-full p-1 ${
-                        isSelected ? 'text-white' : 'border-2 border-gray-300'
-                      }`}
-                      style={{
-                        backgroundColor: isSelected ? config.colors.primary : undefined
-                      }}>
-                        {isSelected && <Check className="h-4 w-4" />}
-                      </div>
                     </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {(selections[currentStepData.id] || []).length} de {currentStepData.maxSelection} seleccionado{(selections[currentStepData.id] || []).length !== 1 ? 's' : ''}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+
+                <div className="space-y-3">
+                  {subcategoryProducts.length > 0 ? (
+                    subcategoryProducts.map(subProduct => {
+                      const isSelected = selections[currentStepData.id]?.some(p => p.id === subProduct.id);
+                      const currentSelectionCount = (selections[currentStepData.id] || []).length;
+                      const canSelect = currentSelectionCount < currentStepData.maxSelection || isSelected;
+                      
+                      return (
+                        <div
+                          key={subProduct.id}
+                          onClick={() => canSelect && handleProductToggle(currentStepData.id, subProduct)}
+                          className={`border rounded-lg p-3 transition-all ${
+                            isSelected 
+                              ? 'border-2 bg-opacity-10' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          } ${canSelect ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                          style={{
+                            borderColor: isSelected ? config.colors.primary : undefined,
+                            backgroundColor: isSelected ? `${config.colors.primary}10` : undefined
+                          }}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <img 
+                              src={subProduct.images?.[0]?.src || '/api/placeholder/60/60'} 
+                              alt={subProduct.name}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm uppercase truncate" 
+                                  style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                {subProduct.name}
+                              </h4>
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                {subProduct.description || 'Deliciosa opción para tu combo'}
+                              </p>
+                            </div>
+                            <div className={`rounded-full p-1 ${
+                              isSelected ? 'text-white' : 'border-2 border-gray-300'
+                            }`}
+                            style={{
+                              backgroundColor: isSelected ? config.colors.primary : undefined
+                            }}>
+                              {isSelected && <Check className="h-4 w-4" />}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No hay productos disponibles en esta categoría
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Footer */}

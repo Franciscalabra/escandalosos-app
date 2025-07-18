@@ -5,7 +5,7 @@ import { useConfig } from '../../context/ConfigContext';
 export const Footer = () => {
   const { config } = useConfig();
   const footerColors = config.colors.footer || {
-    background: '#111827',
+    background: '#00000',
     text: '#ffffff',
     accent: config.colors.primary
   };

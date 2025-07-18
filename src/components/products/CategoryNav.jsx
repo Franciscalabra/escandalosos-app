@@ -19,7 +19,6 @@ export const CategoryNav = ({ categories, selectedCategory, onCategoryChange, pr
           {/* Se itera directamente sobre 'categories' en lugar de 'sortedCategories' */}
           {categories.map(category => {
             const hasHappyHour = categoryHasActiveHappyHour(category.id);
-            const isComboCategory = config.combos?.enabled && config.combos?.categories?.[category.id]?.enabled;
             
             return (
               <button
@@ -34,7 +33,7 @@ export const CategoryNav = ({ categories, selectedCategory, onCategoryChange, pr
                   fontFamily: 'Poppins, sans-serif', 
                   outline: 'none',
                   backgroundColor: selectedCategory === category.id.toString() 
-                    ? (hasHappyHour ? '#ff6b35' : (isComboCategory ? config.colors.secondary : primaryColor))
+                    ? (hasHappyHour ? '#ff6b35' : primaryColor)
                     : undefined,
                   boxShadow: hasHappyHour && selectedCategory === category.id.toString() 
                     ? '0 0 20px rgba(255, 107, 53, 0.5)' 
@@ -53,12 +52,6 @@ export const CategoryNav = ({ categories, selectedCategory, onCategoryChange, pr
                   <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg animate-bounce">
                     <Clock className="inline-block h-3 w-3 mr-1" />
                     HH
-                  </span>
-                )}
-                
-                {isComboCategory && (
-                  <span className="absolute -bottom-2 -right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-bold shadow-lg">
-                    COMBO
                   </span>
                 )}
               </button>

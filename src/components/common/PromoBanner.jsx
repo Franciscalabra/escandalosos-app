@@ -71,7 +71,7 @@ export const PromoBanner = () => {
         }}
       >
         <p style={{ fontFamily: 'Poppins, sans-serif', color: '#000000' }}>
-           YA ESTAMOS ATENTIENDO
+           YA ESTAMOS ATENDIENDO
         </p>
       </div>
     );
